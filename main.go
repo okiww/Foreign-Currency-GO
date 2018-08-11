@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"learn-viper/config"
 	"learn-viper/data"
+	dataModel "learn-viper/data/model"
 	"net/http"
 	"os"
 	"os/signal"
@@ -22,7 +23,8 @@ var (
 )
 
 func init() {
-	flag.BoolVar(&runMigration, "migrate", false, "run db migration before starting the server")
+	//flag for migration if set true then running migration
+	flag.BoolVar(&runMigration, "migrate", true, "run db migration before starting the server")
 	cfg, err := config.New()
 	if err != nil {
 		glog.Fatalf("Failed to load configuration: %s", err)
@@ -119,4 +121,9 @@ func runDBMigration() {
 		panic(fmt.Errorf("Fatal error connecting to database: %s", err))
 	}
 	defer db.Close()
+
+	db.AutoMigrate(
+		&dataModel.Currency{},
+	)
+	glog.Info("Done running db migration")
 }
