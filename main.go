@@ -6,6 +6,7 @@ import (
 	"learn-viper/config"
 	"learn-viper/data"
 	dataModel "learn-viper/data/model"
+	"learn-viper/module/currency"
 	"net/http"
 	"os"
 	"os/signal"
@@ -14,12 +15,11 @@ import (
 	"github.com/golang/glog"
 )
 
-var DB = make(map[string]string)
-
 var (
-	runMigration  bool
-	configuration config.Configuration
-	dbFactory     *data.DBFactory
+	runMigration       bool
+	configuration      config.Configuration
+	dbFactory          *data.DBFactory
+	currencyController *currency.Controller
 )
 
 func init() {
@@ -33,12 +33,17 @@ func init() {
 
 	configuration = *cfg
 	dbFactory = data.NewDbFactory(configuration.Database)
+
+	currencyController, err = currency.NewController(dbFactory)
+	if err != nil {
+		glog.Fatal(err.Error())
+		panic(fmt.Errorf("Fatal error: %s", err))
+	}
+
 }
 func setupRouter() *gin.Engine {
 	// Disable Console Color
-	// gin.DisableConsoleColor()
-	r := gin.Default()
-
+	router := gin.New()
 	db, err := dbFactory.DBConnection()
 	if err != nil {
 		glog.Fatalf("Failed to open database connection: %s", err)
@@ -49,48 +54,17 @@ func setupRouter() *gin.Engine {
 		runDBMigration()
 	}
 	// Ping test
-	r.GET("/ping", func(c *gin.Context) {
+	router.GET("/ping", func(c *gin.Context) {
 		c.String(200, "pong")
 	})
 
-	// Get user value
-	r.GET("/user/:name", func(c *gin.Context) {
-		user := c.Params.ByName("name")
-		value, ok := DB[user]
-		if ok {
-			c.JSON(200, gin.H{"user": user, "value": value})
-		} else {
-			c.JSON(200, gin.H{"user": user, "status": "no value"})
-		}
-	})
+	// api v1 endpoint
+	apiv1 := router.Group("/api/v1")
+	{
+		apiv1.POST("/currency", currencyController.AddCurrency)
+	}
 
-	// Authorized group (uses gin.BasicAuth() middleware)
-	// Same than:
-	// authorized := r.Group("/")
-	// authorized.Use(gin.BasicAuth(gin.Credentials{
-	//	  "foo":  "bar",
-	//	  "manu": "123",
-	//}))
-	authorized := r.Group("/", gin.BasicAuth(gin.Accounts{
-		"foo":  "bar", // user:foo password:bar
-		"manu": "123", // user:manu password:123
-	}))
-
-	authorized.POST("admin", func(c *gin.Context) {
-		user := c.MustGet(gin.AuthUserKey).(string)
-
-		// Parse JSON
-		var json struct {
-			Value string `json:"value" binding:"required"`
-		}
-
-		if c.Bind(&json) == nil {
-			DB[user] = json.Value
-			c.JSON(200, gin.H{"status": "ok"})
-		}
-	})
-
-	return r
+	return router
 }
 
 func main() {
@@ -111,6 +85,8 @@ func main() {
 	quit := make(chan os.Signal)
 	signal.Notify(quit, os.Interrupt)
 	<-quit
+
+	glog.Info("Shutting down server")
 }
 
 func runDBMigration() {
