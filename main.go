@@ -87,6 +87,7 @@ func setupRouter() *gin.Engine {
 		{
 			rateGroup.POST("/", rateController.AddRate)
 			rateGroup.GET("/", rateController.GetListCurrencyByDate)
+			rateGroup.POST("/most", rateController.GetMost7DataPointByCurrency)
 		}
 
 	}

@@ -84,8 +84,12 @@ func (ctrl *Controller) GetListCurrencyByDate(c *gin.Context) {
 		return
 	}
 	defer db.Close()
-
+	//get query param date
 	param := c.Query("date")
+	if param == "" {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"errors": "please add query date"})
+		return
+	}
 	var rates []dataModel.Rate
 	var currencies []dataModel.Currency
 	var resp []rateResponse
@@ -104,7 +108,7 @@ func (ctrl *Controller) GetListCurrencyByDate(c *gin.Context) {
 
 		//query get exchange rate between param date
 		if err := db.Where("date BETWEEN ? AND ? AND currency_id = ?", date.AddDate(0, 0, -7), date.AddDate(0, 0, 1), currencies[i].ID).Find(&rates).Error; err != nil {
-			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"errors": "cannot find currency"})
+			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"errors": "cannot find rate"})
 			return
 		}
 
@@ -136,6 +140,83 @@ func (ctrl *Controller) GetListCurrencyByDate(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"status": http.StatusCreated,
 		"data":   resp,
+	})
+	return
+}
+
+func (ctrl *Controller) GetMost7DataPointByCurrency(c *gin.Context) {
+	db, err := ctrl.dbFactory.DBConnection()
+	if err != nil {
+		fmt.Println("err")
+		glog.Errorf("Failed to open db connection: %s", err)
+		c.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
+	defer db.Close()
+
+	var req rateMost7DataPointRequest
+	var currency dataModel.Currency
+	var rates []dataModel.Rate
+	var dataRate []dataByDateAndRate
+
+	if err := c.ShouldBindWith(&req, binding.JSON); err != nil {
+		var errors []string
+		ve, ok := err.(validator.ValidationErrors)
+		if ok {
+			for _, v := range ve {
+				errors = append(errors, fmt.Sprintf("%s is %s", v.Field, v.Tag))
+			}
+		} else {
+			errors = append(errors, err.Error())
+		}
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"errors": errors})
+		return
+	}
+	//select currency by ID
+	if err := db.Where("id = ?", req.CurrencyID).Find(&currency).Error; err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"errors": "cannot find currency"})
+		return
+	}
+	//select rate limit 7 order id desc
+	if err := db.Order("id desc").Limit(7).Where("currency_id = ?", req.CurrencyID).Find(&rates).Error; err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"errors": "cannot find currency"})
+		return
+	}
+
+	sum := 0.0
+	min := rates[0].Rate
+	max := rates[0].Rate
+
+	for i, v := range rates {
+		sum = sum + v.Rate
+
+		//get minimum rate
+		if v.Rate < min {
+			min = v.Rate
+		}
+		//get maximum rate
+		if v.Rate > max {
+			max = v.Rate
+		}
+		//add and append data to struct
+		data := dataByDateAndRate{
+			Date: v.Date.String(),
+			Rate: fmt.Sprintf("%f", rates[i].Rate),
+		}
+		dataRate = append(dataRate, data)
+	}
+	//add data to struct
+	data := rateMost7DataPointResponse{
+		From:      currency.From,
+		To:        currency.To,
+		Average:   fmt.Sprintf("%f", sum/7),   //average mean sum / 7 data
+		Varriance: fmt.Sprintf("%f", max-min), //varriance mean max rate - min rate
+		Data:      dataRate,
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"status": http.StatusCreated,
+		"data":   data,
 	})
 	return
 }
