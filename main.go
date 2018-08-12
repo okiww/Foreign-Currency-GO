@@ -29,7 +29,7 @@ var (
 
 func init() {
 	//flag for migration and seeder if set true then running migration and seeder
-	flag.BoolVar(&runMigration, "migrate", true, "run db migration before starting the server")
+	flag.BoolVar(&runMigration, "migrate", false, "run db migration before starting the server")
 	flag.BoolVar(&runSeeder, "seeder", false, "run db seeder before starting the server")
 
 	cfg, err := config.New()
@@ -56,7 +56,7 @@ func init() {
 	}
 
 }
-func setupRouter() *gin.Engine {
+func SetupRouter() *gin.Engine {
 	// Disable Console Color
 	router := gin.New()
 	db, err := dbFactory.DBConnection()
@@ -70,7 +70,9 @@ func setupRouter() *gin.Engine {
 	}
 	// Ping test
 	router.GET("/ping", func(c *gin.Context) {
-		c.String(200, "pong")
+		c.JSON(http.StatusOK, gin.H{
+			"ping": "pong",
+		})
 	})
 
 	// api v1 endpoint
@@ -97,7 +99,7 @@ func setupRouter() *gin.Engine {
 }
 
 func main() {
-	r := setupRouter()
+	r := SetupRouter()
 
 	srv := &http.Server{
 		Addr:    configuration.Server.Port,

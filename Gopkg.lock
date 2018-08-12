@@ -8,6 +8,12 @@
   version = "v0.26.0"
 
 [[projects]]
+  name = "github.com/davecgh/go-spew"
+  packages = ["spew"]
+  revision = "346938d642f2ec3594ed81d874461961cd0faa76"
+  version = "v1.1.0"
+
+[[projects]]
   branch = "master"
   name = "github.com/denisenkom/go-mssqldb"
   packages = [
@@ -91,10 +97,16 @@
   version = "v1.9.0"
 
 [[projects]]
-  name = "github.com/szuecs/gin-glog"
-  packages = ["."]
-  revision = "da59244bde84149ae00db0c2b8e62b9d899e6993"
-  version = "v1.1.1"
+  name = "github.com/pmezard/go-difflib"
+  packages = ["difflib"]
+  revision = "792786c7400a136282c1664665ae0a8db921c6c2"
+  version = "v1.0.0"
+
+[[projects]]
+  name = "github.com/stretchr/testify"
+  packages = ["assert"]
+  revision = "f35b8ab0b5a2cef36673838d662e249dd9c94686"
+  version = "v1.2.2"
 
 [[projects]]
   branch = "master"
@@ -135,6 +147,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "246f109f7265c8864ec0218605212b81bab975dae101762831f63a245b09a897"
+  inputs-digest = "aee46e9fe9755f9d41a0a4d000aa67b93de44a58e51de26cfdd955fa3adf90fe"
   solver-name = "gps-cdcl"
   solver-version = 1
