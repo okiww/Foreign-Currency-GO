@@ -7,7 +7,7 @@ import (
 //modeling table currency
 type Currency struct {
 	gorm.Model
-	From string `gorm:"type:varchar(100);"`
-	To   string `gorm:"type:varchar(100);"`
-	Rate []Rate
+	From  string `gorm:"type:varchar(100);"`
+	To    string `gorm:"type:varchar(100);"`
+	Rates []Rate
 }

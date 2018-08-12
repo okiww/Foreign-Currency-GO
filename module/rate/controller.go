@@ -69,8 +69,8 @@ func (ctrl *Controller) AddRate(c *gin.Context) {
 	db.Save(&rate)
 
 	c.JSON(http.StatusOK, gin.H{
-		"status": http.StatusCreated,
-		"data":   rate,
+		"status":  http.StatusCreated,
+		"message": "success add rate",
 	})
 	return
 }
@@ -179,7 +179,7 @@ func (ctrl *Controller) GetMost7DataPointByCurrency(c *gin.Context) {
 	}
 	//select rate limit 7 order id desc
 	if err := db.Order("id desc").Limit(7).Where("currency_id = ?", req.CurrencyID).Find(&rates).Error; err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"errors": "cannot find currency"})
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"errors": "cannot find rate"})
 		return
 	}
 
@@ -211,7 +211,7 @@ func (ctrl *Controller) GetMost7DataPointByCurrency(c *gin.Context) {
 		To:        currency.To,
 		Average:   fmt.Sprintf("%f", sum/7),   //average mean sum / 7 data
 		Varriance: fmt.Sprintf("%f", max-min), //varriance mean max rate - min rate
-		Data:      dataRate,
+		Rates:     dataRate,
 	}
 
 	c.JSON(http.StatusOK, gin.H{

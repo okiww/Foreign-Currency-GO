@@ -8,11 +8,11 @@ type rateResponse struct {
 }
 
 type rateMost7DataPointResponse struct {
-	From      string `json:"from" binding:"required"`
-	To        string `json:"to" binding:"required"`
-	Average   string `json:"average" binding:"required"`
-	Varriance string `json:"varriance" binding:"required"`
-	Data      []dataByDateAndRate
+	From      string              `json:"from" binding:"required"`
+	To        string              `json:"to" binding:"required"`
+	Average   string              `json:"average" binding:"required"`
+	Varriance string              `json:"varriance" binding:"required"`
+	Rates     []dataByDateAndRate `json:"rates"`
 }
 
 type dataByDateAndRate struct {

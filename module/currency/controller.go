@@ -36,6 +36,7 @@ func (ctrl *Controller) ListCurrency(c *gin.Context) {
 	defer db.Close()
 
 	var currencies []dataModel.Currency
+	var rates []dataModel.Rate
 
 	// query get currency
 	if err := db.Find(&currencies).Error; err != nil {
@@ -44,15 +45,37 @@ func (ctrl *Controller) ListCurrency(c *gin.Context) {
 			"message": "cannot find currency",
 		})
 	}
+	var resp []currencyResponse
 
 	for i, _ := range currencies {
-		db.Model(currencies[i]).Related(&currencies[i].Rate, "Rate")
-		currencies[i].Rate = currencies[i].Rate
+		//get rate bu id currency
+		if err := db.Where("currency_id = ?", currencies[i].ID).Find(&rates).Error; err != nil {
+			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"errors": "cannot find rate"})
+			return
+		}
+		//add and append data to resp
+		dataCurrency := currencyResponse{
+			ID:   currencies[i].ID,
+			From: currencies[i].From,
+			To:   currencies[i].To,
+		}
+
+		resp = append(resp, dataCurrency)
+		for j, _ := range rates {
+			//add and append data resp rates
+			dataRate := ratesRepsonse{
+				ID:   rates[j].ID,
+				Date: rates[j].Date.String(),
+				Rate: fmt.Sprintf("%f", rates[j].Rate),
+			}
+			resp[i].Rates = append(resp[i].Rates, dataRate)
+		}
+
 	}
 
 	c.JSON(http.StatusOK, gin.H{
 		"status": http.StatusOK,
-		"data":   currencies,
+		"data":   resp,
 	})
 	return
 }
@@ -90,8 +113,8 @@ func (ctrl *Controller) AddCurrency(c *gin.Context) {
 	db.Save(&currency)
 
 	c.JSON(http.StatusOK, gin.H{
-		"status": http.StatusCreated,
-		"data":   currency,
+		"status":  http.StatusCreated,
+		"message": "success add currency",
 	})
 	return
 }
