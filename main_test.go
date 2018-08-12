@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
@@ -9,6 +10,11 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 )
+
+type currencyRequest struct {
+	From string `json:"from" binding:"required"`
+	To   string `json:"to" binding:"required"`
+}
 
 func performRequest(r http.Handler, method, path string) *httptest.ResponseRecorder {
 	req, _ := http.NewRequest(method, path, nil)
@@ -45,4 +51,18 @@ func TestListCurrency(t *testing.T) {
 	// Perform a GET request with that handler.
 	w := performRequest(router, "GET", "/api/v1/currency/list")
 	assert.Equal(t, 200, w.Code, "OK response is expected")
+}
+
+func TestAddCurrency(t *testing.T) {
+	// Grab our router
+	router := SetupRouter()
+	currency := &currencyRequest{
+		From: "SGD",
+		To:   "IDR",
+	}
+	jsonCurrency, _ := json.Marshal(currency)
+	request, _ := http.NewRequest("POST", "/api/v1/currency/", bytes.NewBuffer(jsonCurrency))
+	response := httptest.NewRecorder()
+	router.ServeHTTP(response, request)
+	assert.Equal(t, 200, response.Code, "OK response is expected")
 }
