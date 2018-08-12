@@ -10,6 +10,8 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strconv"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang/glog"
@@ -17,14 +19,17 @@ import (
 
 var (
 	runMigration       bool
+	runSeeder          bool
 	configuration      config.Configuration
 	dbFactory          *data.DBFactory
 	currencyController *currency.Controller
 )
 
 func init() {
-	//flag for migration if set true then running migration
+	//flag for migration and seeder if set true then running migration and seeder
 	flag.BoolVar(&runMigration, "migrate", true, "run db migration before starting the server")
+	flag.BoolVar(&runSeeder, "seeder", true, "run db seeder before starting the server")
+
 	cfg, err := config.New()
 	if err != nil {
 		glog.Fatalf("Failed to load configuration: %s", err)
@@ -62,6 +67,8 @@ func setupRouter() *gin.Engine {
 	apiv1 := router.Group("/api/v1")
 	{
 		apiv1.POST("/currency", currencyController.AddCurrency)
+		apiv1.GET("/currency/list", currencyController.ListCurrency)
+		apiv1.DELETE("/currency/delete", currencyController.DeleteCurrency)
 	}
 
 	return router
@@ -100,6 +107,40 @@ func runDBMigration() {
 
 	db.AutoMigrate(
 		&dataModel.Currency{},
+		&dataModel.Rate{},
 	)
 	glog.Info("Done running db migration")
+
+	if runSeeder {
+		glog.Info("Running db seeder")
+		var count int
+		db.Model(&dataModel.Currency{}).Count(&count)
+		if count == 0 {
+			glog.V(1).Info("Running db seeder for table Currency")
+			currency := dataModel.Currency{
+				From: "USD",
+				To:   "IDR",
+			}
+			db.Create(&currency)
+
+			db.Model(&dataModel.Rate{}).Count(&count)
+			rates := []float64{0.008, 0.007, 0.009, 0.009, 0.089, 0.079, 0.010}
+			if count == 0 {
+				glog.V(1).Info("Running db seeder for table Rate")
+				date := time.Now().UTC()
+				i := 0
+				for _, c := range rates {
+					i++
+					rate := strconv.FormatFloat(c, 'f', 3, 32)
+					f, _ := strconv.ParseFloat(rate, 64)
+					rates := dataModel.Rate{
+						CurrencyID: currency.ID,
+						Rate:       f,
+						Date:       date.AddDate(0, 0, i),
+					}
+					db.Create(&rates)
+				}
+			}
+		}
+	}
 }
