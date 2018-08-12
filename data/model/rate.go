@@ -11,5 +11,6 @@ type Rate struct {
 	gorm.Model
 	Date       time.Time
 	CurrencyID uint
-	Rate       float64 `gorm:"size:3;"`
+	Currency   Currency `gorm:"foreignkey:CurrencyID"`
+	Rate       float64  `gorm:"size:3;"`
 }

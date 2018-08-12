@@ -7,6 +7,7 @@ import (
 	"learn-viper/data"
 	dataModel "learn-viper/data/model"
 	"learn-viper/module/currency"
+	"learn-viper/module/rate"
 	"net/http"
 	"os"
 	"os/signal"
@@ -23,12 +24,13 @@ var (
 	configuration      config.Configuration
 	dbFactory          *data.DBFactory
 	currencyController *currency.Controller
+	rateController     *rate.Controller
 )
 
 func init() {
 	//flag for migration and seeder if set true then running migration and seeder
 	flag.BoolVar(&runMigration, "migrate", true, "run db migration before starting the server")
-	flag.BoolVar(&runSeeder, "seeder", true, "run db seeder before starting the server")
+	flag.BoolVar(&runSeeder, "seeder", false, "run db seeder before starting the server")
 
 	cfg, err := config.New()
 	if err != nil {
@@ -39,7 +41,15 @@ func init() {
 	configuration = *cfg
 	dbFactory = data.NewDbFactory(configuration.Database)
 
+	//inject dbFactory to currency controller
 	currencyController, err = currency.NewController(dbFactory)
+	if err != nil {
+		glog.Fatal(err.Error())
+		panic(fmt.Errorf("Fatal error: %s", err))
+	}
+
+	//inject dbFactory to rate controller
+	rateController, err = rate.NewController(dbFactory)
 	if err != nil {
 		glog.Fatal(err.Error())
 		panic(fmt.Errorf("Fatal error: %s", err))
@@ -66,9 +76,19 @@ func setupRouter() *gin.Engine {
 	// api v1 endpoint
 	apiv1 := router.Group("/api/v1")
 	{
-		apiv1.POST("/currency", currencyController.AddCurrency)
-		apiv1.GET("/currency/list", currencyController.ListCurrency)
-		apiv1.DELETE("/currency/delete", currencyController.DeleteCurrency)
+		currencyGroup := apiv1.Group("/currency")
+		{
+			currencyGroup.POST("/", currencyController.AddCurrency)
+			currencyGroup.GET("/list", currencyController.ListCurrency)
+			currencyGroup.DELETE("/delete", currencyController.DeleteCurrency)
+		}
+
+		rateGroup := apiv1.Group("/rate")
+		{
+			rateGroup.POST("/", rateController.AddRate)
+			rateGroup.GET("/", rateController.GetListCurrencyByDate)
+		}
+
 	}
 
 	return router

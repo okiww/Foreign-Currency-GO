@@ -35,20 +35,24 @@ func (ctrl *Controller) ListCurrency(c *gin.Context) {
 	}
 	defer db.Close()
 
-	var currency dataModel.Currency
+	var currencies []dataModel.Currency
 
 	// query get currency
-	if err := db.Find(&currency).Error; err != nil {
-		c.JSON(http.StatusOK, gin.H{
-			"status": http.StatusOK,
-			"data":   currency,
+	if err := db.Find(&currencies).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"status":  http.StatusNotFound,
+			"message": "cannot find currency",
 		})
-		return
 	}
 
-	c.JSON(http.StatusNotFound, gin.H{
+	for i, _ := range currencies {
+		db.Model(currencies[i]).Related(&currencies[i].Rate, "Rate")
+		currencies[i].Rate = currencies[i].Rate
+	}
+
+	c.JSON(http.StatusOK, gin.H{
 		"status": http.StatusOK,
-		"data":   currency,
+		"data":   currencies,
 	})
 	return
 }
