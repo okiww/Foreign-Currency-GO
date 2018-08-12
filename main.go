@@ -76,13 +76,14 @@ func setupRouter() *gin.Engine {
 	// api v1 endpoint
 	apiv1 := router.Group("/api/v1")
 	{
+		//grouping by currency
 		currencyGroup := apiv1.Group("/currency")
 		{
 			currencyGroup.POST("/", currencyController.AddCurrency)
 			currencyGroup.GET("/list", currencyController.ListCurrency)
 			currencyGroup.DELETE("/delete", currencyController.DeleteCurrency)
 		}
-
+		//grouping by rate
 		rateGroup := apiv1.Group("/rate")
 		{
 			rateGroup.POST("/", rateController.AddRate)
@@ -102,7 +103,7 @@ func main() {
 		Addr:    configuration.Server.Port,
 		Handler: r,
 	}
-	// Listen and Server in 0.0.0.0:8080
+	// Listen and Serve in 0.0.0.0:8080
 	go func() {
 		if err := srv.ListenAndServe(); err != nil {
 			glog.Fatalf("Failed to start server: %s", err)

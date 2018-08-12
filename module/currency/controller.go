@@ -19,7 +19,7 @@ type Controller struct {
 
 func NewController(dbFactory *data.DBFactory) (*Controller, error) {
 	if dbFactory == nil {
-		return nil, errors.New("failed to instantiate survey controller")
+		return nil, errors.New("failed to instantiate rate controller")
 	}
 
 	return &Controller{dbFactory: dbFactory}, nil
