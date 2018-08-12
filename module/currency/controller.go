@@ -6,7 +6,6 @@ import (
 	"learn-viper/data"
 	dataModel "learn-viper/data/model"
 	"net/http"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
@@ -24,6 +23,34 @@ func NewController(dbFactory *data.DBFactory) (*Controller, error) {
 	}
 
 	return &Controller{dbFactory: dbFactory}, nil
+}
+
+func (ctrl *Controller) ListCurrency(c *gin.Context) {
+	db, err := ctrl.dbFactory.DBConnection()
+	if err != nil {
+		fmt.Println("err")
+		glog.Errorf("Failed to open db connection: %s", err)
+		c.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
+	defer db.Close()
+
+	var currency dataModel.Currency
+
+	// query get currency
+	if err := db.Find(&currency).Error; err != nil {
+		c.JSON(http.StatusOK, gin.H{
+			"status": http.StatusOK,
+			"data":   currency,
+		})
+		return
+	}
+
+	c.JSON(http.StatusNotFound, gin.H{
+		"status": http.StatusOK,
+		"data":   currency,
+	})
+	return
 }
 
 func (ctrl *Controller) AddCurrency(c *gin.Context) {
@@ -51,12 +78,9 @@ func (ctrl *Controller) AddCurrency(c *gin.Context) {
 		return
 	}
 	//save currency
-	date, err := time.Parse("2006-01-02", req.Date)
 	currency := dataModel.Currency{
 		From: req.From,
 		To:   req.To,
-		Date: date,
-		Rate: req.Rate,
 	}
 
 	db.Save(&currency)
@@ -66,4 +90,51 @@ func (ctrl *Controller) AddCurrency(c *gin.Context) {
 		"data":   currency,
 	})
 	return
+}
+
+func (ctrl *Controller) DeleteCurrency(c *gin.Context) {
+	db, err := ctrl.dbFactory.DBConnection()
+	if err != nil {
+		fmt.Println("err")
+		glog.Errorf("Failed to open db connection: %s", err)
+		c.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
+	defer db.Close()
+
+	var req deleteCurrencyRequest
+	var currency dataModel.Currency
+	var rate []dataModel.Rate
+
+	if err := c.ShouldBindWith(&req, binding.JSON); err != nil {
+		var errors []string
+		ve, ok := err.(validator.ValidationErrors)
+		if ok {
+			for _, v := range ve {
+				errors = append(errors, fmt.Sprintf("%s is %s", v.Field, v.Tag))
+			}
+		} else {
+			errors = append(errors, err.Error())
+		}
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"errors": errors})
+		return
+	}
+
+	if err := db.Where("id = ?", req.CurrencyID).Find(&currency).Error; err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"errors": "cannot find currency"})
+		return
+	}
+	db.Delete(&currency)
+
+	if err := db.Where("currency_id = ?", req.CurrencyID).Find(&rate).Error; err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"errors": "cannot find rates"})
+		return
+	}
+
+	db.Delete(&rate)
+
+	c.JSON(http.StatusCreated, gin.H{
+		"status":  http.StatusCreated,
+		"message": "success delete currency",
+	})
 }
