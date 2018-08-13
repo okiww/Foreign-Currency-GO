@@ -1,10 +1,10 @@
 package currency
 
 import (
+	"Foreign-Currency-GO/data"
+	dataModel "Foreign-Currency-GO/data/model"
 	"errors"
 	"fmt"
-	"learn-viper/data"
-	dataModel "learn-viper/data/model"
 	"net/http"
 
 	"github.com/gin-gonic/gin"

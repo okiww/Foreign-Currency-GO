@@ -1,7 +1,7 @@
 package data
 
 import (
-	"learn-viper/config"
+	"Foreign-Currency-GO/config"
 
 	"github.com/golang/glog"
 	"github.com/jinzhu/gorm"

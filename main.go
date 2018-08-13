@@ -1,13 +1,13 @@
 package main
 
 import (
+	"Foreign-Currency-GO/config"
+	"Foreign-Currency-GO/data"
+	dataModel "Foreign-Currency-GO/data/model"
+	"Foreign-Currency-GO/module/currency"
+	"Foreign-Currency-GO/module/rate"
 	"flag"
 	"fmt"
-	"learn-viper/config"
-	"learn-viper/data"
-	dataModel "learn-viper/data/model"
-	"learn-viper/module/currency"
-	"learn-viper/module/rate"
 	"net/http"
 	"os"
 	"os/signal"
