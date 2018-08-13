@@ -1,0 +1,17 @@
+version: '2'
+services:
+  db:
+    image: mariadb:10.3
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: go-currency
+
+  app:
+    build: ./
+    image: fcg
+    depends_on:
+      - db
+    links:
+      - db
+    ports:
+      - "8080:8080"

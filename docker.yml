@@ -1,0 +1,6 @@
+database:
+  dbType: "mysql"       # possible value: mssql, mysql, postgres and sqlite
+  connectionUri: "root:12345678@tcp(127.0.0.1:3306)/go-currency?tls=skip-verify&autocommit=true&parseTime=true"
+
+server:
+  port: ":8080"

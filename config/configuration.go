@@ -2,9 +2,9 @@ package config
 
 import (
 	"log"
-	"viper"
 
 	"github.com/golang/glog"
+	"github.com/spf13/viper"
 )
 
 type Configuration struct {
