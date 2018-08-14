@@ -1,5 +1,5 @@
 # Foreign-Currency-GO
-minimum build API for foreign currency BE Exercise Web API application using Go language powered by [Gin web framework](https://github.com/gin-gonic/gin) and [GORM](https://github.com/jinzhu/gorm) as backend DAL layer.
+Minimum build API for foreign currency BE Exercise using Go language powered by [Gin web framework](https://github.com/gin-gonic/gin) and [GORM](https://github.com/jinzhu/gorm) as backend DAL layer.
 
 ## Run the code
 
