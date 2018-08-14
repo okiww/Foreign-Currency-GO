@@ -48,3 +48,9 @@ By default the app will listen on all interface at port 8080. Here is the list o
 * Add rate currency `POST /api/v1/rate`
 * List currency by date `GET /api/v1/rate` make sure you add query date example `?date=2018-01-01"`
 * List most 7 data point of rate by date `POST /api/v1/rate/most`
+
+## DB SCHEME
+
+We have simply 2 table for this API. here :
+
+![alt text](https://github.com/okiww/Foreign-Currency-GO.git/master/db_scheme.png
