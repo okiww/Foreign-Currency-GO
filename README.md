@@ -3,7 +3,7 @@ Minimum build API for foreign currency BE Exercise using Go language powered by 
 
 ## Run the code
 
-The first is, clone or download this project:
+The first clone or download this project:
 `$ git clone git@github.com:okiww/Foreign-Currency-GO.git && cd Foreign-Currency-GO`
 
 There are two ways to run the code
