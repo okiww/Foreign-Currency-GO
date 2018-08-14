@@ -53,4 +53,4 @@ By default the app will listen on all interface at port 8080. Here is the list o
 
 We have simply 2 table for this API. here :
 
-![alt text](https://github.com/okiww/Foreign-Currency-GO.git/master/db_scheme.png
+![alt text](https://github.com/okiww/Foreign-Currency-GO/blob/master/db_scheme.png)
