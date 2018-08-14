@@ -36,3 +36,15 @@ You will need Go installed in your local machine
 * Run the app. For first run you may want to add `-migrate` switch to run auto db migration.
 
   `$ go run main.go -migrate`
+
+## API endpoint
+
+By default the app will listen on all interface at port 8080. Here is the list of endpoint curently available
+
+* Ping endpoint `GET /ping`
+* Add data currency `POST /api/v1/currency`
+* List all currency `GET /api/v1/currency/list`
+* Delete currency  `DELETE /api/v1/currency/delete`
+* Add rate currency `POST /api/v1/rate`
+* List currency by date `GET /api/v1/rate` make sure you add query date example `?date=2018-01-01"`
+* List most 7 data point of rate by date `POST /api/v1/rate/most`
