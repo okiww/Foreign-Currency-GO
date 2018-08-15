@@ -84,8 +84,61 @@ func TestApiAddCurrency(t *testing.T) {
 		if r.Code == 400 {
 			//if bad request
 			assert.Equal(t, http.StatusBadRequest, r.Code)
+		} else if r.Code == 200 {
+			//if currency already in db
+			assert.Equal(t, http.StatusOK, r.Code)
 		} else {
 			//if success add currency
+			assert.Equal(t, http.StatusCreated, r.Code)
+		}
+		assert.Equal(t, "application/json; charset=utf-8", r.HeaderMap.Get("Content-Type"))
+	})
+}
+
+func TestApiAddRate(t *testing.T) {
+
+	r := gofight.New()
+
+	r.POST("/api/v1/rate/add").SetJSON(gofight.D{
+		"currency_id": 7,
+		"rate":        0.009,
+		"date":        "2017-09-09",
+	}).Run(SetupRouter(), func(r gofight.HTTPResponse, rq gofight.HTTPRequest) {
+		if r.Code == 400 {
+			//if bad request
+			assert.Equal(t, http.StatusBadRequest, r.Code)
+		} else {
+			//if success add rate
+			assert.Equal(t, http.StatusCreated, r.Code)
+		}
+		assert.Equal(t, "application/json; charset=utf-8", r.HeaderMap.Get("Content-Type"))
+	})
+}
+
+func TestApiListRateByDate(t *testing.T) {
+
+	r := gofight.New()
+	param := "2017-01-01"
+	r.GET("/api/v1/rate/list?date="+param).
+		// turn on the debug mode.
+		SetDebug(true).
+		Run(SetupRouter(), func(r gofight.HTTPResponse, rq gofight.HTTPRequest) {
+			assert.Equal(t, http.StatusOK, r.Code)
+		})
+}
+
+func TestAPIGetMost7DataPointByCurrency(t *testing.T) {
+
+	r := gofight.New()
+
+	r.POST("/api/v1/rate/most").SetJSON(gofight.D{
+		"currency_id": 7,
+	}).Run(SetupRouter(), func(r gofight.HTTPResponse, rq gofight.HTTPRequest) {
+		if r.Code == 400 {
+			//if bad request
+			assert.Equal(t, http.StatusBadRequest, r.Code)
+		} else {
+			//if success add rate
 			assert.Equal(t, http.StatusOK, r.Code)
 		}
 		assert.Equal(t, "application/json; charset=utf-8", r.HeaderMap.Get("Content-Type"))

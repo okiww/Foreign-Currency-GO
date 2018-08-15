@@ -37,6 +37,10 @@ You will need Go installed in your local machine
 
   `$ go run main.go -migrate`
 
+* Run `testing`.
+
+  `$ go test`
+
 ## API Documentation
 
 By default the app will listen on all interface at port 8080. Here is the list of endpoint curently available
@@ -51,6 +55,7 @@ By default the app will listen on all interface at port 8080. Here is the list o
 
 ## DB SCHEME Documentation
 
+Database using MYSQL.
 We have simply 2 table for this API. here :
 
 ![alt text](https://github.com/okiww/Foreign-Currency-GO/blob/master/db_scheme.png)
