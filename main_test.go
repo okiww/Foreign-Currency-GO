@@ -1,68 +1,93 @@
 package main
 
 import (
-	"bytes"
 	"encoding/json"
+	"io/ioutil"
 	"net/http"
-	"net/http/httptest"
 	"testing"
 
-	"github.com/gin-gonic/gin"
+	"github.com/appleboy/gofight"
 	"github.com/stretchr/testify/assert"
 )
 
-type currencyRequest struct {
-	From string `json:"from" binding:"required"`
-	To   string `json:"to" binding:"required"`
+type response struct {
+	data   []currencies
+	status string
 }
 
-func performRequest(r http.Handler, method, path string) *httptest.ResponseRecorder {
-	req, _ := http.NewRequest(method, path, nil)
-	w := httptest.NewRecorder()
-	r.ServeHTTP(w, req)
-	return w
+type currencies struct {
+	id    int
+	from  string
+	to    string
+	rates []rates
+}
+
+type rates struct {
+	id   int
+	date string
+	rate string
 }
 
 func TestPing(t *testing.T) {
-	// Build our expected body
-	body := gin.H{
-		"ping": "pong",
-	}
-	// Grab our router
-	router := SetupRouter()
-	// Perform a GET request with that handler.
-	w := performRequest(router, "GET", "/ping")
-	// Assert we encoded correctly,
-	// the request gives a 200
-	assert.Equal(t, http.StatusOK, w.Code)
-	// Convert the JSON response to a map
-	var response map[string]string
-	err := json.Unmarshal([]byte(w.Body.String()), &response)
-	// Grab the value & whether or not it exists
-	value, exists := response["ping"]
-	// Make some assertions on the correctness of the response.
-	assert.Nil(t, err)
-	assert.True(t, exists)
-	assert.Equal(t, body["ping"], value)
+
+	r := gofight.New()
+
+	r.GET("/ping").
+		// turn on the debug mode.
+		SetDebug(true).
+		Run(SetupRouter(), func(r gofight.HTTPResponse, rq gofight.HTTPRequest) {
+
+			assert.Equal(t, "pong", r.Body.String())
+			assert.Equal(t, http.StatusOK, r.Code)
+		})
 }
 
-func TestListCurrency(t *testing.T) {
-	router := SetupRouter()
-	// Perform a GET request with that handler.
-	w := performRequest(router, "GET", "/api/v1/currency/list")
-	assert.Equal(t, 200, w.Code, "OK response is expected")
-}
+func TestApiListCurrency(t *testing.T) {
 
-func TestAddCurrency(t *testing.T) {
-	// Grab our router
-	router := SetupRouter()
-	currency := &currencyRequest{
-		From: "SGD",
-		To:   "IDR",
-	}
-	jsonCurrency, _ := json.Marshal(currency)
-	request, _ := http.NewRequest("POST", "/api/v1/currency/", bytes.NewBuffer(jsonCurrency))
-	response := httptest.NewRecorder()
-	router.ServeHTTP(response, request)
-	assert.Equal(t, 200, response.Code, "OK response is expected")
+	r := gofight.New()
+
+	r.GET("/api/v1/currency/list").
+		// turn on the debug mode.
+		SetDebug(true).
+		Run(SetupRouter(), func(r gofight.HTTPResponse, rq gofight.HTTPRequest) {
+			var resp response
+			temp, _ := ioutil.ReadAll(r.Body)
+			json.Unmarshal(temp, &resp)
+			assert.Equal(t, http.StatusOK, r.Code)
+		})
+}
+func TestApiDeleteCurrency(t *testing.T) {
+
+	r := gofight.New()
+
+	r.DELETE("/api/v1/currency/delete").SetJSON(gofight.D{
+		"currency_id": 1,
+	}).Run(SetupRouter(), func(r gofight.HTTPResponse, rq gofight.HTTPRequest) {
+		if r.Code == 400 {
+			//if data not found
+			assert.Equal(t, http.StatusBadRequest, r.Code)
+		} else {
+			//if success delete
+			assert.Equal(t, http.StatusOK, r.Code)
+		}
+		assert.Equal(t, "application/json; charset=utf-8", r.HeaderMap.Get("Content-Type"))
+	})
+}
+func TestApiAddCurrency(t *testing.T) {
+
+	r := gofight.New()
+
+	r.POST("/api/v1/currency/add").SetJSON(gofight.D{
+		"from": "JPY",
+		"to":   "SGD",
+	}).Run(SetupRouter(), func(r gofight.HTTPResponse, rq gofight.HTTPRequest) {
+		if r.Code == 400 {
+			//if bad request
+			assert.Equal(t, http.StatusBadRequest, r.Code)
+		} else {
+			//if success add currency
+			assert.Equal(t, http.StatusOK, r.Code)
+		}
+		assert.Equal(t, "application/json; charset=utf-8", r.HeaderMap.Get("Content-Type"))
+	})
 }

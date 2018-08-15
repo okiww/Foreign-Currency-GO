@@ -68,7 +68,7 @@ func (ctrl *Controller) AddRate(c *gin.Context) {
 
 	db.Save(&rate)
 
-	c.JSON(http.StatusOK, gin.H{
+	c.JSON(http.StatusCreated, gin.H{
 		"status":  http.StatusCreated,
 		"message": "success add rate",
 	})
@@ -138,7 +138,7 @@ func (ctrl *Controller) GetListCurrencyByDate(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"status": http.StatusCreated,
+		"status": http.StatusOK,
 		"data":   resp,
 	})
 	return
@@ -215,7 +215,7 @@ func (ctrl *Controller) GetMost7DataPointByCurrency(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"status": http.StatusCreated,
+		"status": http.StatusOK,
 		"data":   data,
 	})
 	return

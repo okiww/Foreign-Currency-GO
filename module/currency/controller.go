@@ -120,7 +120,7 @@ func (ctrl *Controller) AddCurrency(c *gin.Context) {
 
 	db.Save(&currency)
 
-	c.JSON(http.StatusOK, gin.H{
+	c.JSON(http.StatusCreated, gin.H{
 		"status":  http.StatusCreated,
 		"message": "success add currency",
 	})
@@ -168,8 +168,8 @@ func (ctrl *Controller) DeleteCurrency(c *gin.Context) {
 
 	db.Delete(&rate)
 
-	c.JSON(http.StatusCreated, gin.H{
-		"status":  http.StatusCreated,
+	c.JSON(http.StatusOK, gin.H{
+		"status":  http.StatusOK,
 		"message": "success delete currency",
 	})
 }

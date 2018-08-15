@@ -31,6 +31,7 @@ func init() {
 	//flag for migration and seeder if set true then running migration and seeder
 	flag.BoolVar(&runMigration, "migrate", false, "run db migration before starting the server")
 	flag.BoolVar(&runSeeder, "seeder", false, "run db seeder before starting the server")
+	flag.Parse()
 
 	cfg, err := config.New()
 	if err != nil {
@@ -59,6 +60,7 @@ func init() {
 func SetupRouter() *gin.Engine {
 	// Disable Console Color
 	router := gin.New()
+
 	db, err := dbFactory.DBConnection()
 	if err != nil {
 		glog.Fatalf("Failed to open database connection: %s", err)
@@ -70,9 +72,7 @@ func SetupRouter() *gin.Engine {
 	}
 	// Ping test
 	router.GET("/ping", func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{
-			"ping": "pong",
-		})
+		c.String(http.StatusOK, "pong")
 	})
 
 	// api v1 endpoint
@@ -81,15 +81,15 @@ func SetupRouter() *gin.Engine {
 		//grouping by currency
 		currencyGroup := apiv1.Group("/currency")
 		{
-			currencyGroup.POST("/", currencyController.AddCurrency)
+			currencyGroup.POST("/add", currencyController.AddCurrency)
 			currencyGroup.GET("/list", currencyController.ListCurrency)
 			currencyGroup.DELETE("/delete", currencyController.DeleteCurrency)
 		}
 		//grouping by rate
 		rateGroup := apiv1.Group("/rate")
 		{
-			rateGroup.POST("/", rateController.AddRate)
-			rateGroup.GET("/", rateController.GetListCurrencyByDate)
+			rateGroup.POST("/add", rateController.AddRate)
+			rateGroup.GET("/list", rateController.GetListCurrencyByDate)
 			rateGroup.POST("/most", rateController.GetMost7DataPointByCurrency)
 		}
 
@@ -113,11 +113,12 @@ func main() {
 		}
 	}()
 
+	// wait for interrupt signal to gracefully shutdown the server
 	quit := make(chan os.Signal)
 	signal.Notify(quit, os.Interrupt)
 	<-quit
 
-	glog.Info("Shutting down server")
+	glog.Info("Server shutted down")
 }
 
 func runDBMigration() {
