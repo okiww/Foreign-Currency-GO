@@ -91,6 +91,7 @@ func (ctrl *Controller) AddCurrency(c *gin.Context) {
 	defer db.Close()
 
 	var req currencyRequest
+	var currency dataModel.Currency
 	if err := c.ShouldBindWith(&req, binding.JSON); err != nil {
 		var errors []string
 		ve, ok := err.(validator.ValidationErrors)
@@ -105,7 +106,14 @@ func (ctrl *Controller) AddCurrency(c *gin.Context) {
 		return
 	}
 	//save currency
-	currency := dataModel.Currency{
+	if err := db.Where(&dataModel.Currency{From: req.From, To: req.To}).Find(&currency).Error; err == nil {
+		c.JSON(http.StatusOK, gin.H{
+			"status":  http.StatusOK,
+			"message": "currency already in database",
+		})
+		return
+	}
+	currency = dataModel.Currency{
 		From: req.From,
 		To:   req.To,
 	}
