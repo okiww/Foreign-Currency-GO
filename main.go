@@ -19,6 +19,9 @@ import (
 )
 
 var (
+	appName = "Foreign Currency Shopee BE"
+	version = "development"
+
 	runMigration       bool
 	runSeeder          bool
 	configuration      config.Configuration
@@ -107,6 +110,7 @@ func main() {
 	}
 	// Listen and Serve in 0.0.0.0:8080
 	go func() {
+		glog.Infof("Starting %s server version %s at %s", appName, version, configuration.Server.Port)
 		if err := srv.ListenAndServe(); err != nil {
 			glog.Fatalf("Failed to start server: %s", err)
 			panic(fmt.Errorf("Fatal error failed to start server: %s", err))
